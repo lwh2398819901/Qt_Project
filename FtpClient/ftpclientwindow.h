@@ -52,6 +52,9 @@ private:
     QAction *ftpRenameAct;
     QAction *ftpDeleteAct;
     QAction *ftpCreateAct;
+    QAction *ftpCopyAct;
+    QAction *ftpPasteAct;
+    QAction *ftpShearAct;
 
     QMenu *hostMenu;
     QAction *hostPutAct;

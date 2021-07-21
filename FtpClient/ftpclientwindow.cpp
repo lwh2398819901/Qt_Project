@@ -55,33 +55,24 @@ FtpClientWindow::FtpClientWindow(QWidget *parent) : QMainWindow(parent), ui(new 
     });
 
     ftpMenu = new QMenu(this);
-    ftpDownAct = new QAction("下载", this);
-    ftpRenameAct = new QAction("重命名", this);
-    ftpCreateAct = new QAction("创建文件夹", this);
-    ftpDeleteAct = new QAction("删除", this);
 
-    ftpMenu->addAction(ftpDownAct);
-    ftpMenu->addAction(ftpRenameAct);
-    ftpMenu->addAction(ftpCreateAct);
-    ftpMenu->addAction(ftpDeleteAct);
-
-    connect(ftpDownAct, &QAction::triggered, this, &FtpClientWindow::get);
-    connect(ftpRenameAct, &QAction::triggered, this, &FtpClientWindow::renameFtp);
-    connect(ftpCreateAct, &QAction::triggered, this, &FtpClientWindow::createFtpDir);
-    connect(ftpDeleteAct, &QAction::triggered, this, &FtpClientWindow::deleteFtp);
+    auto AddAct = [&](QMenu *menu, QAction *&act, QString str, void (FtpClientWindow::*func)()) {
+        act = new QAction(str, this);
+        menu->addAction(act);
+        connect(act, &QAction::triggered, this, func);
+    };
+    AddAct(ftpMenu, ftpDownAct, "下载", &FtpClientWindow::get);
+    AddAct(ftpMenu, ftpRenameAct, "重命名", &FtpClientWindow::renameFtp);
+    AddAct(ftpMenu, ftpCreateAct, "创建文件夹", &FtpClientWindow::createFtpDir);
+    AddAct(ftpMenu, ftpDeleteAct, "删除", &FtpClientWindow::deleteFtp);
+    AddAct(ftpMenu, ftpPasteAct, "粘贴", &FtpClientWindow::deleteFtp);
+    AddAct(ftpMenu, ftpShearAct, "剪切", &FtpClientWindow::deleteFtp);
+    AddAct(ftpMenu, ftpCopyAct, "复制", &FtpClientWindow::deleteFtp);
 
     hostMenu = new QMenu(this);
-    hostPutAct = new QAction("上传", this);
-    hostRename = new QAction("重命名", this);
-    hostDeleteAct = new QAction("删除", this);
-
-    hostMenu->addAction(hostPutAct);
-    hostMenu->addAction(hostRename);
-    hostMenu->addAction(hostDeleteAct);
-
-    connect(hostPutAct, &QAction::triggered, this, &FtpClientWindow::put);
-    connect(hostRename, &QAction::triggered, this, &FtpClientWindow::renameFtp);
-    connect(hostDeleteAct, &QAction::triggered, this, &FtpClientWindow::createFtpDir);
+    AddAct(hostMenu, hostPutAct, "上传", &FtpClientWindow::put);
+    AddAct(hostMenu, hostRename, "重命名", &FtpClientWindow::renameFtp);
+    AddAct(hostMenu, hostDeleteAct, "删除", &FtpClientWindow::createFtpDir);
 }
 
 FtpClientWindow::~FtpClientWindow()
@@ -117,6 +108,11 @@ void FtpClientWindow::renameFtp()
                 QInputDialog::getText(nullptr, "重命名", QString("%1  请输入新名称").arg(oldName));
         if (newName.isEmpty())
             return;
+
+        if (ftp.root->findChild(newName) != nullptr) {
+            showTextBox("error:该名称已经存在");
+            return;
+        }
 
         if (treeItem->parent() != nullptr) {
             ftp.ftpRename(newName, oldName, treeItem->parent()->path());
@@ -203,10 +199,7 @@ void FtpClientWindow::put()
     }
 }
 
-void FtpClientWindow::deleteFtp() {
-
-
-}
+void FtpClientWindow::deleteFtp() {}
 
 void FtpClientWindow::deleteHost() {}
 

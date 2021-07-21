@@ -26,6 +26,7 @@ void TreeItem::clear()
         delete iter;
     }
     m_child.clear();
+    m_parent = nullptr;
 }
 
 void TreeItem::setParent(TreeItem *parent)
