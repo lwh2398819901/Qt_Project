@@ -4,13 +4,13 @@
 
 
 #if CXXProgram
-    #include "publishfunc_cxx.h"
+    #include "./include/publishfunc_cxx.h"
 #endif
 
 #if QtProgram
-    #include "publishfunc_qt.h"
+    #include "./include/publishfunc_qt.h"
 #endif
 
 #if DtkProgram
-    #include "publishfunc_dtk.h"
+    #include "./include/publishfunc_dtk.h"
 #endif

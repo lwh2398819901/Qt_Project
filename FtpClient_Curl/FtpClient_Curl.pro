@@ -28,21 +28,21 @@ SOURCES += \
     ftpclientwindow.cpp \
     ftpfileinfo.cpp \
     main.cpp \
-    publishFunc/publishfunc_cxx.cpp \
-    publishFunc/publishfunc_dtk.cpp \
-    publishFunc/publishfunc_qt.cpp \
     treeitem.cpp \
-    ftpmanager.cpp
+    ftpmanager.cpp \
+    publishFunc/src/publishfunc_cxx.cpp \
+    publishFunc/src/publishfunc_dtk.cpp \
+    publishFunc/src/publishfunc_qt.cpp
 
 HEADERS += \
         ftpclientwindow.h \
     ftpfileinfo.h \
     publishFunc/publishfunc.h \
-    publishFunc/publishfunc_cxx.h \
-    publishFunc/publishfunc_dtk.h \
-    publishFunc/publishfunc_qt.h \
     treeitem.h \
-    ftpmanager.h
+    ftpmanager.h \
+    publishFunc/include/publishfunc_cxx.h \
+    publishFunc/include/publishfunc_dtk.h \
+    publishFunc/include/publishfunc_qt.h
 
 FORMS += \
         ftpclientwindow.ui
