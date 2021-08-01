@@ -33,6 +33,7 @@ public:
     void ftpSort(int index);
     void showFtpTreeMenu(QPoint point);
     void showHostTreeMenu(QPoint point);
+    void showFtpFileText();
 
 private:
     void getFtpFiles(const TreeItem *root, QTreeWidgetItem *item = nullptr);
@@ -55,6 +56,7 @@ private:
     QAction *ftpCopyAct;
     QAction *ftpPasteAct;
     QAction *ftpShearAct;
+    QAction *ftpSeekAct;
 
     QMenu *hostMenu;
     QAction *hostPutAct;

@@ -27,6 +27,7 @@ public slots:
     bool moveFtpFiles(QString filePath);
     void setFileSort(SortOrder sortOrder);
     SortOrder getFileSort() { return root->getSort(); }
+    QString getFtpFileText(QString ftpFileName);
 
 private:
     void updateRootItem(QString ftpFilePath, TreeItem *root);
@@ -49,6 +50,7 @@ struct CurlQuery
     static QString put(FtpManager *ftpManager, QString hostFilePath, QString hostFileName,
                        QString ftpFilePath = "/");
     static QString rmFtpFiles(FtpManager *ftpManager,QString ftpFileName, bool isDir = false);
+    static QString getFtpFileText(FtpManager *ftpManager,QString ftpFileName);
 };
 
 #endif // FTPMAMAGER_H

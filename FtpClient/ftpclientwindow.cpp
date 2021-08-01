@@ -35,18 +35,14 @@ FtpClientWindow::FtpClientWindow(QWidget *parent) : QMainWindow(parent), ui(new 
     ui->treeWidget_2->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeWidget_2, &QTreeWidget::customContextMenuRequested, this,
             &FtpClientWindow::showFtpTreeMenu);
-
-    updateFtpDir();
-
-    connect(ui->putBtn, &QPushButton::clicked, this, &FtpClientWindow::put);
-    connect(ui->updateBtn, &QPushButton::clicked, this, &FtpClientWindow::updateFtpDir);
     connect(ui->treeWidget_2->header(), &QHeaderView::sectionClicked, this,
             &FtpClientWindow::ftpSort);
-    connect(ui->treeWidget_2, &QTreeWidget::itemDoubleClicked,
-            [=](QTreeWidgetItem *item, int column) {
+    connect(ui->treeWidget_2, &QTreeWidget::itemDoubleClicked, this,
+            &FtpClientWindow::showFtpFileText);
 
-            });
     connect(ui->getBtn, &QPushButton::clicked, this, &FtpClientWindow::get);
+    connect(ui->putBtn, &QPushButton::clicked, this, &FtpClientWindow::put);
+    connect(ui->updateBtn, &QPushButton::clicked, this, &FtpClientWindow::updateFtpDir);
     connect(ui->getPathBtn, &QPushButton::clicked, [=]() {
         QString str = QFileDialog::getExistingDirectory();
         if (!str.isEmpty()) {
@@ -55,19 +51,20 @@ FtpClientWindow::FtpClientWindow(QWidget *parent) : QMainWindow(parent), ui(new 
     });
 
     ftpMenu = new QMenu(this);
-
     auto AddAct = [&](QMenu *menu, QAction *&act, QString str, void (FtpClientWindow::*func)()) {
         act = new QAction(str, this);
         menu->addAction(act);
         connect(act, &QAction::triggered, this, func);
     };
+
+    AddAct(ftpMenu, ftpSeekAct, "预览（文件大小１m以内）", &FtpClientWindow::showFtpFileText);
     AddAct(ftpMenu, ftpDownAct, "下载", &FtpClientWindow::get);
     AddAct(ftpMenu, ftpRenameAct, "重命名", &FtpClientWindow::renameFtp);
     AddAct(ftpMenu, ftpCreateAct, "创建文件夹", &FtpClientWindow::createFtpDir);
-    AddAct(ftpMenu, ftpDeleteAct, "删除", &FtpClientWindow::deleteFtp);
-    AddAct(ftpMenu, ftpPasteAct, "粘贴", &FtpClientWindow::deleteFtp);
-    AddAct(ftpMenu, ftpShearAct, "剪切", &FtpClientWindow::deleteFtp);
-    AddAct(ftpMenu, ftpCopyAct, "复制", &FtpClientWindow::deleteFtp);
+    //    AddAct(ftpMenu, ftpDeleteAct, "删除", &FtpClientWindow::deleteFtp);
+    //    AddAct(ftpMenu, ftpPasteAct, "粘贴", &FtpClientWindow::deleteFtp);
+    //    AddAct(ftpMenu, ftpShearAct, "剪切", &FtpClientWindow::deleteFtp);
+    //    AddAct(ftpMenu, ftpCopyAct, "复制", &FtpClientWindow::deleteFtp);
 
     hostMenu = new QMenu(this);
     AddAct(hostMenu, hostPutAct, "上传", &FtpClientWindow::put);
@@ -91,10 +88,7 @@ void FtpClientWindow::updateFtpDir()
         return;
     flag = false;
     ui->treeWidget_2->clear();
-    const TreeItem *root = ftp.updateFtpFiles();
-
-    getFtpFiles(root);
-
+    getFtpFiles(ftp.updateFtpFiles());
     flag = true;
 }
 
@@ -109,7 +103,7 @@ void FtpClientWindow::renameFtp()
         if (newName.isEmpty())
             return;
 
-        if (ftp.root->findChild(newName) != nullptr) {
+        if (treeItem->parent() && (treeItem->parent()->findChild(newName) != nullptr)) {
             showTextBox("error:该名称已经存在");
             return;
         }
@@ -234,33 +228,32 @@ void FtpClientWindow::showHostTreeMenu(QPoint point)
     hostMenu->exec(QCursor::pos());
 }
 
+void FtpClientWindow::showFtpFileText()
+{
+    const TreeItem *treeItem = getTreeData(ui->treeWidget_2->currentItem());
+    if (!treeItem->fileInfo().isDir() && treeItem->fileInfo().size() < 1024 * 1024 * 3) {
+        ui->ftpFileText->setText(ftp.getFtpFileText(treeItem->path()));
+    }
+}
+
 void FtpClientWindow::getFtpFiles(const TreeItem *root, QTreeWidgetItem *itemRoot)
 {
+    QFileIconProvider icon_provider;
     foreach (const TreeItem *it, root->childList()) {
         QTreeWidgetItem *item = new QTreeWidgetItem();
         item->setText(0, it->fileInfo().name());
-        if (!it->fileInfo().isDir()) {
-            item->setText(1, publisherFunc::humanReadableSize(it->fileInfo().size(), 2));
-        }
-        item->setText(2, it->fileInfo().date());
         QVariant var = QVariant::fromValue((void *)it);
         item->setData(0, Qt::UserRole + 1, var);
-        QFileIconProvider icon_provider;
+        item->setText(2, it->fileInfo().date());
+
         if (it->fileInfo().isDir()) {
             item->setIcon(0, icon_provider.icon(QFileIconProvider::Folder));
             getFtpFiles(it, item);
         } else {
-            if (it->fileInfo().suffix().isEmpty()) {
-                item->setIcon(0, icon_provider.icon(QFileIconProvider::File));
-            } else {
-                item->setIcon(0, publisherFunc::fileIcon(it->fileInfo().suffix()));
-            }
+            item->setIcon(0, publisherFunc::fileIcon(it->fileInfo().suffix()));
+            item->setText(1, publisherFunc::humanReadableSize(it->fileInfo().size(), 2));
         }
-        if (itemRoot == nullptr) {
-            ui->treeWidget_2->addTopLevelItem(item);
-        } else {
-            itemRoot->addChild(item);
-        }
+        (itemRoot == nullptr) ? ui->treeWidget_2->addTopLevelItem(item) : itemRoot->addChild(item);
     }
 }
 
@@ -276,8 +269,9 @@ void FtpClientWindow::hostPutFiles(QFileInfo info)
 const TreeItem *FtpClientWindow::getTreeData(QTreeWidgetItem *item)
 {
     QVariant var = item->data(0, Qt::UserRole + 1);
-    const TreeItem *treeItem = (const TreeItem *)var.value<void *>();
-    return treeItem;
+    if (var.isValid())
+        return (const TreeItem *)var.value<void *>();
+    return nullptr;
 }
 
 void FtpClientWindow::readConfig()

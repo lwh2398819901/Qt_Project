@@ -96,6 +96,11 @@ void FtpManager::setFileSort(SortOrder sortOrder)
     root->setSort(sortOrder);
 }
 
+QString FtpManager::getFtpFileText(QString ftpFileName)
+{
+    return threadCall(CurlQuery::getFtpFileText(this, ftpFileName), false, -1).second;
+}
+
 void FtpManager::updateRootItem(QString ftpFilePath, TreeItem *root)
 {
     QString str = publisherFunc::startPopen(CurlQuery::queryFiles(this, ftpFilePath)).second;
@@ -179,4 +184,9 @@ QString CurlQuery::rmFtpFiles(FtpManager *ftpManager,QString ftpFileName, bool i
     if(isDir){
 
     }
+}
+
+QString CurlQuery::getFtpFileText(FtpManager *ftpManager, QString ftpFileName)
+{
+    return queryFiles(ftpManager, ftpFileName, false);
 }

@@ -32,14 +32,14 @@ public:
     bool addChildList(list<TreeItem *> &childList);
     void deleteChild(TreeItem *child);
     void deleteChild(const FtpFileInfo &info);
-    TreeItem *findChild(QString fileName);
+    TreeItem *findChild(const QString fileName);
+    TreeItem *findChild(const QString fileName)const;
     list<TreeItem *> findChildList(QString fileName);
-    TreeItem *findChild(FtpFileInfo &info);
+    TreeItem *findChild(const FtpFileInfo &info);
+    TreeItem *findChild(const FtpFileInfo &info)const;
     void setSort(SortOrder order = SortOrder::AscendingOrder);
     SortOrder getSort() { return m_sort; }
     QString path()const;
-
-
 private:
     TreeItem *m_parent { nullptr };
     list<TreeItem *> m_child;
